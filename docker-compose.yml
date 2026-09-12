@@ -1,0 +1,34 @@
+services:
+  oracle-db:
+    image: gvenzl/oracle-free:23-slim
+    container_name: rutaexpress-oracle
+    restart: unless-stopped
+    ports:
+      # Host port 1522 (not 1521) — this machine already has a native Oracle
+      # XE listener bound to 1521. Container-internal port stays 1521.
+      - "${ORACLE_HOST_PORT:-1522}:1521"
+    environment:
+      # SYS/SYSTEM/PDBADMIN password inside the container (not used by the apps)
+      ORACLE_PASSWORD: ${ORACLE_SYS_PASSWORD:-oracle}
+      # Name of the pluggable database created on first boot — matches the
+      # ORACLE_SERVICE default already baked into ms-rutaexpress-shipments
+      # and ms-rutaexpress-catalog (application.yaml: ${ORACLE_SERVICE:XEPDB1})
+      ORACLE_DATABASE: ${ORACLE_SERVICE:-XEPDB1}
+      # App-level user auto-created inside ORACLE_DATABASE — matches
+      # ${ORACLE_USER:rutaexpress} / ${ORACLE_PASSWORD:rutaexpress} defaults
+      APP_USER: ${ORACLE_USER:-rutaexpress}
+      APP_USER_PASSWORD: ${ORACLE_APP_PASSWORD:-rutaexpress}
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+      # Scripts aqui se ejecutan UNA sola vez, en el primer arranque con el volumen
+      # vacio (crean el segundo usuario/esquema para catalog; ver initdb/*.sql).
+      - ./initdb:/container-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+
+volumes:
+  oracle-data:
