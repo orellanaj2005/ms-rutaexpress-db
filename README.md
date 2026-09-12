@@ -122,6 +122,22 @@ EXIT;
 EOF
 ```
 
+## Datos de ejemplo (seed)
+
+La carpeta `seed/` tiene scripts SQL con datos de prueba, uno por esquema. No se ejecutan
+automáticamente (a diferencia de `initdb/`, corren manualmente cuando quieras poblar la base):
+
+```bash
+docker exec -i rutaexpress-oracle bash -c "sqlplus -s catalog/catalog@//localhost:1521/XEPDB1" < seed/01_catalog_seed.sql
+docker exec -i rutaexpress-oracle bash -c "sqlplus -s rutaexpress/rutaexpress@//localhost:1521/XEPDB1" < seed/02_shipments_seed.sql
+```
+
+- `01_catalog_seed.sql`: 4 servicios de catálogo (Express, Estándar, Económico, Prioritario) con
+  tarifa y capacidad.
+- `02_shipments_seed.sql`: 6 envíos de ejemplo, uno por cada estado del ciclo de vida (`CREADO`,
+  `ACEPTADO`, `EN_BODEGA`, `EN_RUTA`, `ENTREGADO`, `CANCELADO`), referenciando los `service_id`
+  1 a 4 del seed de catalog. Corre `01_catalog_seed.sql` primero.
+
 ## Registro de cambios
 
 ### 2026-09-12 — Creación del contenedor Oracle local (Jassack)
@@ -139,3 +155,8 @@ agregó `initdb/01_create_catalog_user.sql` (montado en `container-entrypoint-in
 un `docker compose down -v && up` desde cero también lo cree automáticamente. El cambio
 correspondiente en el código de `ms-rutaexpress-catalog` (default de `ORACLE_USER`/`ORACLE_PASSWORD`
 de `rutaexpress` a `catalog`) está documentado en el README de ese repo.
+
+### 2026-09-12 - Scripts de datos de ejemplo (Jassack)
+Se agregó la carpeta `seed/` con los inserts usados para probar los endpoints de shipments y
+catalog contra datos reales (4 servicios de catálogo, 6 envíos cubriendo todos los estados
+posibles). Son manuales a proposito, no se ejecutan solos al levantar el contenedor.
