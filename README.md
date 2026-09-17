@@ -130,6 +130,8 @@ automáticamente (a diferencia de `initdb/`, corren manualmente cuando quieras p
 ```bash
 docker exec -i rutaexpress-oracle bash -c "sqlplus -s catalog/catalog@//localhost:1521/XEPDB1" < seed/01_catalog_seed.sql
 docker exec -i rutaexpress-oracle bash -c "sqlplus -s rutaexpress/rutaexpress@//localhost:1521/XEPDB1" < seed/02_shipments_seed.sql
+docker exec -i rutaexpress-oracle bash -c "sqlplus -s audit_user/changeit@//localhost:1521/XEPDB1" < seed/03_audit_seed.sql
+docker exec -i rutaexpress-oracle bash -c "sqlplus -s report_user/changeit@//localhost:1521/XEPDB1" < seed/04_report_seed.sql
 ```
 
 - `01_catalog_seed.sql`: 4 servicios de catálogo (Express, Estándar, Económico, Prioritario) con
@@ -137,6 +139,10 @@ docker exec -i rutaexpress-oracle bash -c "sqlplus -s rutaexpress/rutaexpress@//
 - `02_shipments_seed.sql`: 6 envíos de ejemplo, uno por cada estado del ciclo de vida (`CREADO`,
   `ACEPTADO`, `EN_BODEGA`, `EN_RUTA`, `ENTREGADO`, `CANCELADO`), referenciando los `service_id`
   1 a 4 del seed de catalog. Corre `01_catalog_seed.sql` primero.
+- `03_audit_seed.sql`: 6 eventos de auditoría (`AUDIT_EVENT`), uno por cada envío del seed de
+  shipments, simulando el último `ShipmentStatusChanged` consumido desde `shipments.events`.
+- `04_report_seed.sql`: 6 filas en `SHIPMENT_EVENT_LOG`, mismo criterio que el seed de audit, con
+  el nombre del servicio de catálogo correspondiente para poder probar KPIs/top-services.
 
 ## Registro de cambios
 
