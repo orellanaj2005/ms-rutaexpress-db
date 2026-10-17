@@ -166,3 +166,10 @@ de `rutaexpress` a `catalog`) está documentado en el README de ese repo.
 Se agregó la carpeta `seed/` con los inserts usados para probar los endpoints de shipments y
 catalog contra datos reales (4 servicios de catálogo, 6 envíos cubriendo todos los estados
 posibles). Son manuales a proposito, no se ejecutan solos al levantar el contenedor.
+
+### 2026-10-16 - Usuarios de initdb creados dentro de XEPDB1 (Jassack)
+Con una base nueva, catalog, audit y report no arrancaban con `ORA-01045` (sin `CREATE SESSION`).
+La imagen `gvenzl/oracle-free` ejecuta los scripts de `initdb/` como SYSDBA en la raiz del CDB,
+asi que los `GRANT CONNECT, RESOURCE` quedaban en la raiz y no en `XEPDB1`. Se agrego
+`ALTER SESSION SET CONTAINER = XEPDB1;` al inicio de los tres scripts. Si se cambia
+`ORACLE_SERVICE`, hay que ajustar tambien esa linea.
